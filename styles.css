@@ -1,0 +1,40 @@
+body {
+  font-family: Arial, sans-serif;
+  margin: 20px;
+  background: #f9f9f9;
+}
+
+h1, h2, h3 {
+  color: #0b66c3;
+}
+
+label {
+  display: block;
+  margin: 8px 0;
+}
+
+input, select, button {
+  margin-top: 4px;
+  padding: 6px;
+}
+
+button {
+  background-color: #0b66c3;
+  color: #fff;
+  border: none;
+  cursor: pointer;
+}
+
+button:disabled {
+  background-color: #999;
+  cursor: not-allowed;
+}
+
+.hidden {
+  display: none;
+}
+
+#status, #lookupStatus {
+  margin-top: 10px;
+  font-weight: bold;
+}
