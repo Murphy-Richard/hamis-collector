@@ -1,0 +1,5 @@
+{
+  "timeZone": "UTC",
+  "dependencies": {},
+  "exceptionLogging": "STACKDRIVER"
+}
