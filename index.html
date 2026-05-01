@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>HAPPY Program Questionnaire</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <h1>HAPPY Program Questionnaire</h1>
+
+  <!-- Lookup Section -->
+  <section id="lookupSection">
+    <h2>Lookup Participant</h2>
+    <label>ParticipantID: <input type="text" id="lookupParticipantId"></label>
+    <label>Telephone: <input type="text" id="lookupTelephone"></label>
+    <button id="lookupBtn">Lookup</button>
+    <div id="lookupStatus"></div>
+  </section>
+
+  <!-- Questionnaire Form -->
+  <form id="questionnaire">
+    <h2>Onboarding / Follow-up</h2>
+
+    <label>Implementing Partner:
+      <select id="implementingPartner" name="implementingPartner"></select>
+    </label>
+
+    <label>Region:
+      <select id="region" name="region"></select>
+    </label>
+
+    <label>District:
+      <select id="district" name="district"></select>
+    </label>
+
+    <label>Community: <input type="text" id="community" name="community"></label>
+
+    <label>Surname: <input type="text" id="surname" name="surname" required></label>
+    <label>First Name: <input type="text" id="firstName" name="firstName" required></label>
+    <label>Other Names: <input type="text" id="otherNames" name="otherNames"></label>
+
+    <label>Sex:
+      <select id="sex" name="sex">
+        <option value="">Select</option>
+        <option>Male</option>
+        <option>Female</option>
+      </select>
+    </label>
+
+    <label>Date of Birth: <input type="date" id="dob" name="dob"></label>
+    <label>Age: <input type="number" id="age" name="age" readonly></label>
+    <label>Age Group: <input type="text" id="participantTypeAge" name="participantTypeAge" readonly></label>
+    <div id="youthBucketWrap" class="hidden">
+      <label>Youth Bucket: <input type="text" id="youthBucket" name="youthBucket" readonly></label>
+    </div>
+
+    <label>Telephone: <input type="text" id="telephone" name="telephone" required></label>
+
+    <label>ID Type:
+      <select id="idType" name="idType">
+        <option value="">Select</option>
+        <option value="Ghana Card">Ghana Card</option>
+        <option value="Voter ID">Voter ID</option>
+      </select>
+    </label>
+
+    <div id="ghanaCardWrap" class="hidden">
+      <label>Ghana Card ID: <input type="text" id="ghanaCardId" name="ghanaCardId"></label>
+    </div>
+
+    <label>Voter ID: <input type="text" id="voterId" name="voterId"></label>
+
+    <label>HAMIS ID: <input type="text" id="hamisId" name="hamisId"></label>
+
+    <label>Employment Status:
+      <select id="employmentStatus" name="employmentStatus">
+        <option value="">Select</option>
+        <option>Employed</option>
+        <option>Unemployed</option>
+      </select>
+    </label>
+
+    <div id="baselineEmploymentBlock" class="hidden">
+      <h3>Baseline Employment</h3>
+      <label>Current Sector:
+        <select id="currentSector" name="currentSector"></select>
+      </label>
+      <label>Industry:
+        <select id="currentIndustry" name="currentIndustry"></select>
+      </label>
+      <label>Job Type:
+        <select id="currentJobType" name="currentJobType"></select>
+      </label>
+      <label>Job Role:
+        <select id="currentJobRole" name="currentJobRole"></select>
+      </label>
+    </div>
+
+    <label>Trained by Partner:
+      <select id="trainedByPartner" name="trainedByPartner">
+        <option value="">Select</option>
+        <option>Yes</option>
+        <option>No</option>
+      </select>
+    </label>
+    <div id="trainingBlock" class="hidden">
+      <h3>Training Details</h3>
+      <label>Sector:
+        <select id="sector" name="sector"></select>
+      </label>
+      <label>Industry:
+        <select id="industry" name="industry"></select>
+      </label>
+      <label>Job Type:
+        <select id="jobType" name="jobType"></select>
+      </label>
+      <label>Job Role:
+        <select id="jobRole" name="jobRole"></select>
+      </label>
+    </div>
+
+    <label>Placed by Partner:
+      <select id="placedByPartner" name="placedByPartner">
+        <option value="">Select</option>
+        <option>Yes</option>
+        <option>No</option>
+      </select>
+    </label>
+    <div id="placementBlock" class="hidden">
+      <h3>Placement Details</h3>
+      <label>Placement Region:
+        <select id="placementRegion" name="placementRegion"></select>
+      </label>
+      <label>Placement District:
+        <select id="placementDistrict" name="placementDistrict"></select>
+      </label>
+      <label>Placement Community: <input type="text" id="placementCommunity" name="placementCommunity"></label>
+    </div>
+
+    <button id="submitBtn" type="submit">Submit</button>
+    <div id="status"></div>
+  </form>
+
+  <script src="script.js"></script>
+</body>
+</html>
