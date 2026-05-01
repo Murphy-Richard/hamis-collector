@@ -1,146 +1,545 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <title>HAPPY Program Questionnaire</title>
-  <link rel="stylesheet" href="styles.css">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>HAMIS Master DQA System</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    
+    <style>
+        * { font-family: 'Inter', sans-serif; }
+        body { background-color: #f8fafc; }
+        .form-section { background: white; border-radius: 0.75rem; box-shadow: 0 1px 3px rgba(0,0,0,0.1); border-top: 5px solid #1e40af; margin-bottom: 1.5rem; padding: 1.5rem; }
+        .label-text { display: block; font-size: 0.65rem; font-weight: 800; color: #475569; margin-bottom: 0.35rem; text-transform: uppercase; letter-spacing: 0.05em; }
+        .input-box { width: 100% !important; padding: 0.5rem; border: 1px solid #cbd5e1; border-radius: 0.375rem; font-size: 0.85rem; outline: none; transition: all 0.2s; }
+        .input-box:focus { border-color: #2563eb; box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.1); }
+        .required::after { content: " *"; color: #ef4444; }
+        .conditional-box { display: none; margin-top: 1rem; padding-top: 1rem; border-top: 1px dashed #e2e8f0; }
+        .show { display: block !important; animation: slideDown 0.3s ease-out; }
+        @keyframes slideDown { from { opacity: 0; transform: translateY(-10px); } to { opacity: 1; transform: translateY(0); } }
+        
+        .sheet-container { overflow: auto; background: white; border: 1px solid #cbd5e1; height: 70vh; }
+        .sheet-table { border-collapse: collapse; width: 100%; font-size: 0.75rem; }
+        .sheet-table th { background: #1e40af; color: white; padding: 8px; position: sticky; top: 0; z-index: 10; border: 1px solid #1e3a8a; }
+        .sheet-table td { padding: 6px; border: 1px solid #e2e8f0; white-space: nowrap; }
+        
+        .auto-field { background-color: #f1f5f9; font-weight: 600; color: #1e40af; }
+    </style>
 </head>
-<body>
-  <h1>HAPPY Program Questionnaire</h1>
+<body class="pb-20">
 
-  <!-- Lookup Section -->
-  <section id="lookupSection">
-    <h2>Lookup Participant</h2>
-    <label>ParticipantID: <input type="text" id="lookupParticipantId"></label>
-    <label>Telephone: <input type="text" id="lookupTelephone"></label>
-    <button id="lookupBtn">Lookup</button>
-    <div id="lookupStatus"></div>
-  </section>
+    <nav class="bg-[#1e40af] text-white p-4 sticky top-0 z-50 flex justify-between items-center shadow-lg">
+        <div class="flex items-center gap-3">
+            <div class="bg-white text-blue-800 rounded px-2 py-1 font-black">HAMIS</div>
+            <h1 class="text-sm font-bold tracking-tight">DATA ACQUISITION (A-AK)</h1>
+        </div>
+        <div class="flex bg-blue-900/40 p-1 rounded-lg">
+            <button onclick="setView('form')" id="btn-form" class="bg-blue-600 px-4 py-1.5 rounded text-xs font-bold transition">Entry Form</button>
+            <button onclick="setView('sheet')" id="btn-sheet" class="px-4 py-1.5 rounded text-xs font-bold transition">Master Sheet</button>
+        </div>
+    </nav>
 
-  <!-- Questionnaire Form -->
-  <form id="questionnaire">
-    <h2>Onboarding / Follow-up</h2>
+    <div id="view-form" class="max-w-6xl mx-auto px-4 mt-6">
+        <form id="masterForm" onsubmit="handleFormSubmit(event)">
+            
+            <!-- SECTION A: SYSTEM IDS -->
+            <div class="form-section">
+                <div class="flex justify-between items-center mb-4 border-b pb-2">
+                    <h2 class="text-blue-700 font-black text-sm">SECTION A: SYSTEM METRICS</h2>
+                    <span id="subIdText" class="text-[10px] font-mono text-slate-400 bg-slate-50 px-2 rounded">SUB-AUTO-PENDING</span>
+                </div>
+                <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+                    <div><label class="label-text">Collector</label><input type="text" id="collector" class="input-box" placeholder="Your Name"></div>
+                    <div><label class="label-text">Participant ID</label><input type="text" id="participantId" class="input-box auto-field" readonly></div>
+                    <div><label class="label-text">HAMIS Registry ID</label><input type="text" id="hamisId" class="input-box" placeholder="E.g. REG-102"></div>
+                    <div><label class="label-text">Onboarding Date</label><input type="date" id="onbDate" class="input-box"></div>
+                </div>
+            </div>
 
-    <label>Implementing Partner:
-      <select id="implementingPartner" name="implementingPartner"></select>
-    </label>
+            <!-- SECTION B: DEMOGRAPHICS -->
+            <div class="form-section" style="border-top-color: #3b82f6;">
+                <h2 class="text-blue-700 font-black text-sm mb-4">SECTION B: PARTICIPANT ONBOARDING</h2>
+                
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
+                    <div>
+                        <label class="label-text required">Implementing Partner</label>
+                        <select id="partner" class="input-box" required onchange="updateIds()"></select>
+                    </div>
+                    <div>
+                        <label class="label-text required">Participant Type - Support</label>
+                        <select id="ptSupport" class="input-box" required></select>
+                    </div>
+                    <div>
+                        <label class="label-text">Participant Type - Age</label>
+                        <input type="text" id="ptAge" class="input-box auto-field" readonly placeholder="Auto from DOB">
+                    </div>
+                </div>
 
-    <label>Region:
-      <select id="region" name="region"></select>
-    </label>
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
+                    <div><label class="label-text required">Surname</label><input type="text" id="surname" class="input-box" required></div>
+                    <div><label class="label-text required">First Name</label><input type="text" id="firstName" class="input-box" required></div>
+                    <div><label class="label-text">Other Names</label><input type="text" id="otherNames" class="input-box"></div>
+                </div>
 
-    <label>District:
-      <select id="district" name="district"></select>
-    </label>
+                <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-4">
+                    <div><label class="label-text required">Sex</label><select id="sex" class="input-box" required></select></div>
+                    <div><label class="label-text required">DOB</label><input type="date" id="dob" class="input-box" required onchange="handleDOBChange()"></div>
+                    <div><label class="label-text">Age</label><input type="text" id="age" class="input-box auto-field" readonly></div>
+                    <div><label class="label-text">Youth Type</label><input type="text" id="youthType" class="input-box auto-field" readonly placeholder="Auto from DOB"></div>
+                </div>
 
-    <label>Community: <input type="text" id="community" name="community"></label>
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
+                    <div><label class="label-text required">Telephone</label><input type="tel" id="tel" class="input-box" required placeholder="024XXXXXXX"></div>
+                    <div>
+                        <label class="label-text required">ID Type</label>
+                        <select id="idType" class="input-box" required onchange="handleIdTypeChange()"></select>
+                        <input type="text" id="idTypeOther" class="input-box mt-2 hidden" placeholder="Specify ID Type">
+                    </div>
+                    <div>
+                        <label class="label-text required">ID Number</label>
+                        <input type="text" id="idNum" class="input-box" required placeholder="Select ID Type first" oninput="formatIdNumber(this)">
+                    </div>
+                </div>
 
-    <label>Surname: <input type="text" id="surname" name="surname" required></label>
-    <label>First Name: <input type="text" id="firstName" name="firstName" required></label>
-    <label>Other Names: <input type="text" id="otherNames" name="otherNames"></label>
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
+                    <div>
+                        <label class="label-text required">Education Level</label>
+                        <select id="education" class="input-box" required onchange="handleOtherToggle('education', 'eduOther')"></select>
+                        <input type="text" id="eduOther" class="input-box mt-2 hidden" placeholder="Specify Education">
+                    </div>
+                    <div><label class="label-text required">Region (Origin)</label><select id="region" class="input-box" required onchange="updateDistricts('region','district'); updateIds();"></select></div>
+                    <div><label class="label-text required">District (Origin)</label><select id="district" class="input-box" required disabled></select></div>
+                </div>
 
-    <label>Sex:
-      <select id="sex" name="sex">
-        <option value="">Select</option>
-        <option>Male</option>
-        <option>Female</option>
-      </select>
-    </label>
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
+                    <div><label class="label-text required">Community (Origin)</label><input type="text" id="community" class="input-box" required></div>
+                    <div class="md:col-span-1">
+                        <label class="label-text required">Refugee Status</label>
+                        <select id="refugee" class="input-box" required onchange="toggleRefugee()">
+                            <option value="No">No (Ghanaian)</option><option value="Yes">Yes (Refugee)</option>
+                        </select>
+                        <input type="text" id="nationality" class="input-box mt-2 hidden" placeholder="Enter Nationality">
+                    </div>
+                    <div class="md:col-span-1">
+                        <label class="label-text required">Disability Status</label>
+                        <select id="disability" class="input-box" required onchange="toggleDisability()">
+                            <option value="No">No</option><option value="Yes">Yes</option>
+                        </select>
+                        <input type="text" id="disDetail" class="input-box mt-2 hidden" placeholder="Specify Disability">
+                    </div>
+                </div>
+            </div>
 
-    <label>Date of Birth: <input type="date" id="dob" name="dob"></label>
-    <label>Age: <input type="number" id="age" name="age" readonly></label>
-    <label>Age Group: <input type="text" id="participantTypeAge" name="participantTypeAge" readonly></label>
-    <div id="youthBucketWrap" class="hidden">
-      <label>Youth Bucket: <input type="text" id="youthBucket" name="youthBucket" readonly></label>
+            <!-- SECTION C: BASELINE WORK -->
+            <div class="form-section" style="border-top-color: #64748b;">
+                <h2 class="text-slate-700 font-black text-sm mb-4">SECTION C: BASELINE EMPLOYMENT (CURRENT)</h2>
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
+                    <div><label class="label-text required">Employment Status</label><select id="baseEmpStatus" class="input-box" required onchange="toggleBlock('base_logic', this.value === 'Yes')"></select></div>
+                </div>
+
+                <div id="base_logic" class="conditional-box">
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
+                        <div><label class="label-text required">Sector</label><select id="baseSector" class="input-box" onchange="updateSubs('baseSector','baseSub')"></select></div>
+                        <div><label class="label-text required">Industry/Sub</label><select id="baseSub" class="input-box" disabled></select></div>
+                        <div><label class="label-text required">Job Level</label><select id="baseLevel" class="input-box"></select></div>
+                    </div>
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
+                        <div><label class="label-text required">Type</label><select id="baseType" class="input-box"></select></div>
+                        <div><label class="label-text required">Category</label><select id="baseCat" class="input-box"></select></div>
+                        <div><label class="label-text">Wage Frequency</label><select id="baseFreq" class="input-box"></select></div>
+                    </div>
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
+                        <div><label class="label-text">Wage (GHS)</label><input type="number" id="baseWage" class="input-box"></div>
+                        <div><label class="label-text">Employer</label><input type="text" id="baseEmployer" class="input-box"></div>
+                        <div><label class="label-text">Current Occupation</label><input type="text" id="baseOcc" class="input-box"></div>
+                    </div>
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                        <div><label class="label-text">Region of Work</label><select id="baseReg" class="input-box" onchange="updateDistricts('baseReg','baseDist')"></select></div>
+                        <div><label class="label-text">District of Work</label><select id="baseDist" class="input-box" disabled></select></div>
+                        <div><label class="label-text">Town/Community</label><input type="text" id="baseComm" class="input-box"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- SECTION D: CAPACITY BUILDING -->
+            <div class="form-section" style="border-top-color: #8b5cf6;">
+                <h2 class="text-purple-700 font-black text-sm mb-4">SECTION D: CAPACITY BUILDING</h2>
+                <div class="bg-purple-50 p-3 rounded mb-4">
+                    <label class="label-text">Has participant been trained by partner?</label>
+                    <div class="flex gap-4 mt-1">
+                        <label class="text-xs font-bold"><input type="radio" name="tr_check" value="Yes" onclick="toggleBlock('tr_logic', true)"> YES</label>
+                        <label class="text-xs font-bold"><input type="radio" name="tr_check" value="No" onclick="toggleBlock('tr_logic', false)" checked> NO</label>
+                    </div>
+                </div>
+                
+                <div id="tr_logic" class="conditional-box">
+                    <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-4">
+                        <div><label class="label-text">Start Date</label><input type="date" id="trStart" class="input-box"></div>
+                        <div><label class="label-text">End Date</label><input type="date" id="trEnd" class="input-box"></div>
+                        <div><label class="label-text">Trainer Type</label><select id="trType" class="input-box"></select></div>
+                        <div><label class="label-text">Status</label><select id="trStatus" class="input-box"></select></div>
+                    </div>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div><label class="label-text">Sector of Training</label><select id="trSector" class="input-box" onchange="updateSubs('trSector', 'trSub')"></select></div>
+                        <div><label class="label-text">Module/Sub-Sector</label><select id="trSub" class="input-box" disabled></select></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- SECTION E: PLACEMENT -->
+            <div class="form-section" style="border-top-color: #10b981;">
+                <h2 class="text-emerald-700 font-black text-sm mb-4">SECTION E: PARTNER PLACEMENT</h2>
+                <div class="bg-emerald-50 p-3 rounded mb-4">
+                    <label class="label-text">Was participant placed in a job?</label>
+                    <div class="flex gap-4 mt-1">
+                        <label class="text-xs font-bold"><input type="radio" name="pl_check" value="Yes" onclick="toggleBlock('pl_logic', true)"> YES</label>
+                        <label class="text-xs font-bold"><input type="radio" name="pl_check" value="No" onclick="toggleBlock('pl_logic', false)" checked> NO</label>
+                    </div>
+                </div>
+
+                <div id="pl_logic" class="conditional-box">
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
+                        <div><label class="label-text required">Sector</label><select id="plSector" class="input-box" onchange="updateSubs('plSector','plSub')"></select></div>
+                        <div><label class="label-text required">Industry/Sub</label><select id="plSub" class="input-box" disabled></select></div>
+                        <div><label class="label-text required">Job Level</label><select id="plLevel" class="input-box"></select></div>
+                    </div>
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
+                        <div><label class="label-text required">Type</label><select id="plType" class="input-box"></select></div>
+                        <div><label class="label-text required">Category</label><select id="plCat" class="input-box"></select></div>
+                        <div><label class="label-text">Wage Frequency</label><select id="plFreq" class="input-box"></select></div>
+                    </div>
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
+                        <div><label class="label-text">Wage (GHS)</label><input type="number" id="plWage" class="input-box"></div>
+                        <div><label class="label-text">Employer</label><input type="text" id="plEmployer" class="input-box"></div>
+                        <div><label class="label-text">Region of Work</label><select id="plReg" class="input-box" onchange="updateDistricts('plReg','plDist')"></select></div>
+                    </div>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div><label class="label-text">District of Work</label><select id="plDist" class="input-box" disabled></select></div>
+                        <div><label class="label-text">Town/Community</label><input type="text" id="plComm" class="input-box"></div>
+                    </div>
+                </div>
+            </div>
+
+            <button type="submit" class="w-full bg-blue-700 text-white font-bold py-4 rounded-xl shadow-lg hover:bg-blue-800 transition transform active:scale-95 mb-10 uppercase tracking-widest">Submit Records to Registry</button>
+        </form>
     </div>
 
-    <label>Telephone: <input type="text" id="telephone" name="telephone" required></label>
-
-    <label>ID Type:
-      <select id="idType" name="idType">
-        <option value="">Select</option>
-        <option value="Ghana Card">Ghana Card</option>
-        <option value="Voter ID">Voter ID</option>
-      </select>
-    </label>
-
-    <div id="ghanaCardWrap" class="hidden">
-      <label>Ghana Card ID: <input type="text" id="ghanaCardId" name="ghanaCardId"></label>
+    <div id="view-sheet" class="hidden max-w-full px-2 mt-6">
+        <div class="bg-white p-4 rounded-lg shadow border flex justify-between items-center mb-4">
+            <h2 class="font-black text-blue-800 uppercase text-xs tracking-widest">Master Data Repository</h2>
+            <div class="flex gap-2">
+                <button onclick="exportData()" class="bg-emerald-600 text-white text-[10px] px-3 py-1 rounded font-bold">EXPORT CSV</button>
+                <button onclick="clearData()" class="bg-red-50 text-red-600 text-[10px] px-3 py-1 rounded font-bold">CLEAR ALL</button>
+            </div>
+        </div>
+        <div class="sheet-container shadow-inner">
+            <table class="sheet-table" id="mainSheet">
+                <thead id="sheetHead"></thead>
+                <tbody id="sheetBody"></tbody>
+            </table>
+        </div>
     </div>
 
-    <label>Voter ID: <input type="text" id="voterId" name="voterId"></label>
+    <script>
+        const config = {
+            partners: ["Jobberman", "Agrico", "YouthEmpower", "SkillsGH", "PharmaCare"],
+            regions: {
+                "Greater Accra": ["Accra Metropolitan", "Tema", "Adenta", "Ashaiman"],
+                "Ashanti": ["Kumasi Metropolitan", "Obuasi", "Ejisu"],
+                "Northern": ["Tamale", "Yendi", "Savelugu"],
+                "Western": ["Sekondi-Takoradi", "Tarkwa", "Ahanta West"]
+            },
+            ptSupport: ["Individual", "Casual Worker", "Enterprises"],
+            education: ["None", "Primary", "JHS", "SHS", "Vocational", "Technical", "University", "College", "Other"],
+            idTypes: ["Ghana Card", "Voter's ID", "Passport", "Other"],
+            empStatus: ["Yes", "No"],
+            jobLevels: ["Management", "Technical", "Administrative", "Support"],
+            trTypes: ["Internal", "External", "Both"],
+            trStatus: ["Complete", "Incomplete"],
+            empType: ["Wage", "Self"],
+            empCat: ["New", "Improved", "Additional"],
+            freq: ["Daily", "Weekly", "Bi-weekly", "Monthly"],
+            sectors: {
+                "Education and Training": ["Schools", "Professional Training"],
+                "Healthcare and Wellness": ["Hospitals", "Clinics", "Pharmaceuticals"],
+                "Agriculture and Agri-Business": ["Crop Farming", "Livestock", "Aquaculture", "Forestry"],
+                "Finance and Insurance": ["Banking", "Microfinance", "Insurance"],
+                "IT and Engineering": ["Software Services", "Hardware", "Network"],
+                "Logistics and Transport": ["Warehousing", "Courier", "Haulage"],
+                "Other": ["Specify in next field"]
+            }
+        };
 
-    <label>HAMIS ID: <input type="text" id="hamisId" name="hamisId"></label>
+        const headers = [
+            "Participant ID", "Implementing Partner", "PT-Support", "PT-Age", "Youth-Type", "Surname", "First Name", "Sex", "Age", "Telephone",
+            "ID Type", "ID Number", "Education", "Region", "District", "Refugee", "Disability", 
+            "Baseline-Status", "Baseline-Sector", "Baseline-Sub", "Baseline-Level", "Baseline-Wage",
+            "Trained?", "Tr-Sector", "Tr-Status", "Placed?", "Pl-Sector", "Pl-Sub", "Pl-Level", "Pl-Wage", "Timestamp"
+        ];
 
-    <label>Employment Status:
-      <select id="employmentStatus" name="employmentStatus">
-        <option value="">Select</option>
-        <option>Employed</option>
-        <option>Unemployed</option>
-      </select>
-    </label>
+        let db = JSON.parse(localStorage.getItem('hamis_master_v4')) || [];
 
-    <div id="baselineEmploymentBlock" class="hidden">
-      <h3>Baseline Employment</h3>
-      <label>Current Sector:
-        <select id="currentSector" name="currentSector"></select>
-      </label>
-      <label>Industry:
-        <select id="currentIndustry" name="currentIndustry"></select>
-      </label>
-      <label>Job Type:
-        <select id="currentJobType" name="currentJobType"></select>
-      </label>
-      <label>Job Role:
-        <select id="currentJobRole" name="currentJobRole"></select>
-      </label>
-    </div>
+        window.onload = () => {
+            initDropdowns();
+            renderSheet();
+            updateIds();
+        };
 
-    <label>Trained by Partner:
-      <select id="trainedByPartner" name="trainedByPartner">
-        <option value="">Select</option>
-        <option>Yes</option>
-        <option>No</option>
-      </select>
-    </label>
-    <div id="trainingBlock" class="hidden">
-      <h3>Training Details</h3>
-      <label>Sector:
-        <select id="sector" name="sector"></select>
-      </label>
-      <label>Industry:
-        <select id="industry" name="industry"></select>
-      </label>
-      <label>Job Type:
-        <select id="jobType" name="jobType"></select>
-      </label>
-      <label>Job Role:
-        <select id="jobRole" name="jobRole"></select>
-      </label>
-    </div>
+        function initDropdowns() {
+            populate('partner', config.partners);
+            populate('ptSupport', config.ptSupport);
+            populate('sex', ["Male", "Female"]);
+            populate('education', config.education);
+            populate('idType', config.idTypes);
+            populate('region', Object.keys(config.regions));
+            populate('baseReg', Object.keys(config.regions));
+            populate('plReg', Object.keys(config.regions));
+            populate('baseEmpStatus', config.empStatus);
+            populate('baseLevel', config.jobLevels);
+            populate('plLevel', config.jobLevels);
+            populate('baseType', config.empType);
+            populate('plType', config.empType);
+            populate('baseCat', config.empCat);
+            populate('plCat', config.empCat);
+            populate('baseFreq', config.freq);
+            populate('plFreq', config.freq);
+            populate('trType', config.trTypes);
+            populate('trStatus', config.trStatus);
+            populate('trSector', Object.keys(config.sectors));
+            populate('plSector', Object.keys(config.sectors));
+            populate('baseSector', Object.keys(config.sectors));
 
-    <label>Placed by Partner:
-      <select id="placedByPartner" name="placedByPartner">
-        <option value="">Select</option>
-        <option>Yes</option>
-        <option>No</option>
-      </select>
-    </label>
-    <div id="placementBlock" class="hidden">
-      <h3>Placement Details</h3>
-      <label>Placement Region:
-        <select id="placementRegion" name="placementRegion"></select>
-      </label>
-      <label>Placement District:
-        <select id="placementDistrict" name="placementDistrict"></select>
-      </label>
-      <label>Placement Community: <input type="text" id="placementCommunity" name="placementCommunity"></label>
-    </div>
+            const head = document.getElementById('sheetHead');
+            const tr = document.createElement('tr');
+            headers.forEach(h => {
+                const th = document.createElement('th');
+                th.innerText = h;
+                tr.appendChild(th);
+            });
+            head.appendChild(tr);
+        }
 
-    <button id="submitBtn" type="submit">Submit</button>
-    <div id="status"></div>
-  </form>
+        function populate(id, list) {
+            const el = document.getElementById(id);
+            el.innerHTML = '<option value="">Select</option>';
+            list.forEach(i => el.add(new Option(i, i)));
+        }
 
-  <script src="script.js"></script>
+        function handleDOBChange() {
+            const dobVal = document.getElementById('dob').value;
+            if (!dobVal) return;
+            
+            const dob = new Date(dobVal);
+            const today = new Date();
+            let age = today.getFullYear() - dob.getFullYear();
+            const m = today.getMonth() - dob.getMonth();
+            if (m < 0 || (m === 0 && today.getDate() < dob.getDate())) {
+                age--;
+            }
+
+            document.getElementById('age').value = age;
+
+            // Participant Type - Age Logic
+            const ptAge = document.getElementById('ptAge');
+            const youthType = document.getElementById('youthType');
+
+            if (age >= 15 && age <= 35) {
+                ptAge.value = "Youth";
+                // Specific Youth Ranges
+                if (age <= 17) youthType.value = "15-17";
+                else if (age <= 24) youthType.value = "18-24";
+                else if (age <= 29) youthType.value = "25-29";
+                else youthType.value = "30-35";
+            } else {
+                ptAge.value = age > 35 ? "Non-Youth" : "Underage";
+                youthType.value = "N/A";
+            }
+        }
+
+        function handleIdTypeChange() {
+            const idType = document.getElementById('idType').value;
+            const idNum = document.getElementById('idNum');
+            
+            handleOtherToggle('idType', 'idTypeOther');
+            
+            if (idType === "Ghana Card") {
+                idNum.placeholder = "GHA-XXXXXXXXX-X";
+                if (!idNum.value.startsWith('GHA-')) {
+                    idNum.value = "GHA-";
+                }
+            } else {
+                idNum.placeholder = "Enter ID Number";
+                if (idNum.value.startsWith('GHA-')) {
+                    idNum.value = "";
+                }
+            }
+        }
+
+        function formatIdNumber(input) {
+            const idType = document.getElementById('idType').value;
+            if (idType === "Ghana Card") {
+                let val = input.value.toUpperCase().replace(/[^A-Z0-9-]/g, '');
+                
+                // Keep GHA- prefix
+                if (!val.startsWith('GHA-')) val = "GHA-" + val.replace('GHA', '');
+                
+                // Add second dash before the 15th character (index 14)
+                // Format: GHA-123456789-0 (Total 15 chars)
+                if (val.length > 13 && val[13] !== '-') {
+                    val = val.slice(0, 13) + '-' + val.slice(13);
+                }
+                
+                input.value = val.slice(0, 15);
+            }
+        }
+
+        function handleOtherToggle(selectId, otherId) {
+            const val = document.getElementById(selectId).value;
+            document.getElementById(otherId).classList.toggle('hidden', val !== 'Other');
+        }
+
+        function updateDistricts(regId, distId) {
+            const reg = document.getElementById(regId).value;
+            const dist = document.getElementById(distId);
+            dist.innerHTML = '';
+            if(reg && config.regions[reg]) {
+                config.regions[reg].forEach(d => dist.add(new Option(d, d)));
+                dist.disabled = false;
+            } else { dist.disabled = true; }
+        }
+
+        function updateSubs(secId, subId) {
+            const sec = document.getElementById(secId).value;
+            const sub = document.getElementById(subId);
+            sub.innerHTML = '';
+            if(sec && config.sectors[sec]) {
+                config.sectors[sec].forEach(s => sub.add(new Option(s, s)));
+                sub.disabled = false;
+            } else { sub.disabled = true; }
+        }
+
+        function updateIds() {
+            const partner = document.getElementById('partner').value || "IP";
+            const reg = document.getElementById('region').value || "XXX";
+            const pPrefix = partner.substring(0,3).toUpperCase();
+            const pSeq = String(db.length + 1).padStart(7, '0');
+            document.getElementById('participantId').value = `${pPrefix}--${pSeq}`;
+
+            const regPrefix = reg.substring(0,3).toUpperCase();
+            const sSeq = String(db.length + 1).padStart(6, '0');
+            const ts = new Date().toISOString().replace(/[-:T.]/g, '').substring(0, 14);
+            document.getElementById('subIdText').innerText = `${regPrefix}-${sSeq}-${ts}`;
+        }
+
+        function toggleRefugee() { document.getElementById('nationality').classList.toggle('hidden', document.getElementById('refugee').value === 'No'); }
+        function toggleDisability() { document.getElementById('disDetail').classList.toggle('hidden', document.getElementById('disability').value === 'No'); }
+        function toggleBlock(id, show) { 
+            const el = document.getElementById(id);
+            el.classList.toggle('show', show);
+            // Ensure child selects are required if parent is shown
+            const inputs = el.querySelectorAll('select, input');
+            inputs.forEach(i => {
+                if(show) i.setAttribute('required', '');
+                else i.removeAttribute('required');
+            });
+        }
+
+        function setView(v) {
+            document.getElementById('view-form').classList.toggle('hidden', v !== 'form');
+            document.getElementById('view-sheet').classList.toggle('hidden', v !== 'sheet');
+            document.getElementById('btn-form').classList.toggle('bg-blue-600', v === 'form');
+            document.getElementById('btn-sheet').classList.toggle('bg-blue-600', v === 'sheet');
+        }
+
+        function handleFormSubmit(e) {
+            e.preventDefault();
+            
+            // Final Validation for Ghana Card
+            const idType = document.getElementById('idType').value;
+            const idNum = document.getElementById('idNum').value;
+            if(idType === "Ghana Card" && idNum.length !== 15) {
+                alert("Ghana Card ID must be exactly 15 characters (GHA-XXXXXXXXX-X)");
+                return;
+            }
+
+            const record = {
+                "Participant ID": document.getElementById('participantId').value,
+                "Implementing Partner": document.getElementById('partner').value,
+                "PT-Support": document.getElementById('ptSupport').value,
+                "PT-Age": document.getElementById('ptAge').value,
+                "Youth-Type": document.getElementById('youthType').value,
+                "Surname": document.getElementById('surname').value,
+                "First Name": document.getElementById('firstName').value,
+                "Sex": document.getElementById('sex').value,
+                "Age": document.getElementById('age').value,
+                "Telephone": document.getElementById('tel').value,
+                "ID Type": idType === 'Other' ? document.getElementById('idTypeOther').value : idType,
+                "ID Number": idNum,
+                "Education": document.getElementById('education').value === 'Other' ? document.getElementById('eduOther').value : document.getElementById('education').value,
+                "Region": document.getElementById('region').value,
+                "District": document.getElementById('district').value,
+                "Refugee": document.getElementById('refugee').value,
+                "Disability": document.getElementById('disability').value,
+                "Baseline-Status": document.getElementById('baseEmpStatus').value,
+                "Baseline-Sector": document.getElementById('baseSector').value,
+                "Baseline-Sub": document.getElementById('baseSub').value,
+                "Baseline-Level": document.getElementById('baseLevel').value,
+                "Baseline-Wage": document.getElementById('baseWage').value,
+                "Trained?": document.querySelector('input[name="tr_check"]:checked').value,
+                "Tr-Sector": document.getElementById('trSector').value,
+                "Tr-Status": document.getElementById('trStatus').value,
+                "Placed?": document.querySelector('input[name="pl_check"]:checked').value,
+                "Pl-Sector": document.getElementById('plSector').value,
+                "Pl-Sub": document.getElementById('plSub').value,
+                "Pl-Level": document.getElementById('plLevel').value,
+                "Pl-Wage": document.getElementById('plWage').value,
+                "Timestamp": new Date().toLocaleString()
+            };
+
+            db.push(record);
+            localStorage.setItem('hamis_master_v4', JSON.stringify(db));
+            alert("Record A-AK synchronized with local database.");
+            renderSheet();
+            setView('sheet');
+            document.getElementById('masterForm').reset();
+            updateIds();
+        }
+
+        function renderSheet() {
+            const body = document.getElementById('sheetBody');
+            body.innerHTML = '';
+            db.forEach(r => {
+                const tr = document.createElement('tr');
+                headers.forEach(h => {
+                    const td = document.createElement('td');
+                    td.innerText = r[h] || "-";
+                    tr.appendChild(td);
+                });
+                body.appendChild(tr);
+            });
+        }
+
+        function exportData() {
+            let csv = headers.join(",") + "\n";
+            db.forEach(r => {
+                csv += headers.map(h => `"${r[h] || ""}"`).join(",") + "\n";
+            });
+            const blob = new Blob([csv], {type:'text/csv'});
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `HAMIS_DATA_${Date.now()}.csv`;
+            a.click();
+        }
+
+        function clearData() {
+            if(confirm("Confirm deletion of all current session records?")) {
+                localStorage.removeItem('hamis_master_v4');
+                db = [];
+                renderSheet();
+            }
+        }
+    </script>
 </body>
 </html>
