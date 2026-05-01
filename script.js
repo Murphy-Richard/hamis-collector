@@ -7,7 +7,7 @@
  */
 
 /* ========== Configuration ========== */
-// Replace this value only if you re-deploy Apps Script and get a new /exec URL.
+// Full Apps Script Web App /exec URL — replace only if you re-deploy and get a new URL.
 const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzKG62FxQvouPswxEiWHob4YZnXY0vc7bZuGRPy2FZkS0SGoWPYbE51ntTiyn531zLdWQ/exec';
 
 /* ========== Reference Data ========== */
@@ -107,54 +107,60 @@ document.addEventListener('DOMContentLoaded', () => {
   // Populate implementing partners
   const partners = ['Jobberman','Partner A','Partner B'];
   const ip = $('implementingPartner');
-  partners.forEach(p => ip.add(new Option(p,p)));
+  if (ip) partners.forEach(p => ip.add(new Option(p,p)));
 
   // Populate regions
   const regionSel = $('region');
-  REFERENCE.regions.forEach(r => regionSel.add(new Option(r.label, r.id)));
+  if (regionSel) REFERENCE.regions.forEach(r => regionSel.add(new Option(r.label, r.id)));
   const placementRegion = $('placementRegion');
   const workRegion = $('workRegion');
   const placementWorkRegion = $('placementWorkRegion');
-  REFERENCE.regions.forEach(r => {
-    placementRegion.add(new Option(r.label, r.id));
-    workRegion.add(new Option(r.label, r.id));
-    placementWorkRegion.add(new Option(r.label, r.id));
+  [placementRegion, workRegion, placementWorkRegion].forEach(el => {
+    if (!el) return;
+    REFERENCE.regions.forEach(r => el.add(new Option(r.label, r.id)));
   });
 
   // District population handlers
-  regionSel.addEventListener('change', e => populateDistricts(e.target.value, 'district'));
-  placementRegion.addEventListener('change', e => populateDistricts(e.target.value, 'placementDistrict'));
-  workRegion.addEventListener('change', e => populateDistricts(e.target.value, 'workDistrict'));
-  placementWorkRegion.addEventListener('change', e => populateDistricts(e.target.value, 'placementWorkDistrict'));
+  if (regionSel) regionSel.addEventListener('change', e => populateDistricts(e.target.value, 'district'));
+  if (placementRegion) placementRegion.addEventListener('change', e => populateDistricts(e.target.value, 'placementDistrict'));
+  if (workRegion) workRegion.addEventListener('change', e => populateDistricts(e.target.value, 'workDistrict'));
+  if (placementWorkRegion) placementWorkRegion.addEventListener('change', e => populateDistricts(e.target.value, 'placementWorkDistrict'));
 
   // Employment status -> show baseline employment
-  $('employmentStatus').addEventListener('change', e => {
+  const employmentEl = $('employmentStatus');
+  if (employmentEl) employmentEl.addEventListener('change', e => {
     if (e.target.value === 'Employed') show($('baselineEmploymentBlock')); else hide($('baselineEmploymentBlock'));
   });
 
   // Training / placement toggles
-  $('trainedByPartner').addEventListener('change', e => {
+  const trainedEl = $('trainedByPartner');
+  if (trainedEl) trainedEl.addEventListener('change', e => {
     if (e.target.value === 'Yes') show($('trainingBlock')); else hide($('trainingBlock'));
   });
-  $('placedByPartner').addEventListener('change', e => {
+  const placedEl = $('placedByPartner');
+  if (placedEl) placedEl.addEventListener('change', e => {
     if (e.target.value === 'Yes') show($('placementBlock')); else hide($('placementBlock'));
   });
 
   // Disability -> specify
-  $('disabilityStatus').addEventListener('change', e => {
+  const disabilityEl = $('disabilityStatus');
+  if (disabilityEl) disabilityEl.addEventListener('change', e => {
     if (e.target.value === 'Yes') show($('specifyDisabilityWrap')); else hide($('specifyDisabilityWrap'));
   });
-  $('specifyDisability').addEventListener('change', e => {
+  const specifyDisability = $('specifyDisability');
+  if (specifyDisability) specifyDisability.addEventListener('change', e => {
     if (e.target.value === 'Other') show($('specifyDisabilityOtherWrap')); else hide($('specifyDisabilityOtherWrap'));
   });
 
   // Education other
-  $('educationLevel').addEventListener('change', e => {
+  const educationEl = $('educationLevel');
+  if (educationEl) educationEl.addEventListener('change', e => {
     if (e.target.value === 'Other') show($('educationOtherWrap')); else hide($('educationOtherWrap'));
   });
 
   // ID type -> Ghana Card show
-  $('idType').addEventListener('change', e => {
+  const idTypeEl = $('idType');
+  if (idTypeEl) idTypeEl.addEventListener('change', e => {
     if (e.target.value === 'Ghana Card') show($('ghanaCardWrap')); else hide($('ghanaCardWrap'));
   });
 
@@ -169,20 +175,24 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   // Telephone formatting & validation
-  $('telephone').addEventListener('blur', e => {
-    e.target.value = formatPhone(e.target.value);
-    if (!validatePhone(e.target.value)) e.target.setCustomValidity('Phone must be 10 digits and start with 0.');
-    else e.target.setCustomValidity('');
-  });
+  const telEl = $('telephone');
+  if (telEl) {
+    telEl.addEventListener('blur', e => {
+      e.target.value = formatPhone(e.target.value);
+      if (!validatePhone(e.target.value)) e.target.setCustomValidity('Phone must be 10 digits and start with 0.');
+      else e.target.setCustomValidity('');
+    });
+  }
 
   // DOB -> Age, AgeGroup, YouthBucket
-  $('dob').addEventListener('change', e => {
+  const dobEl = $('dob');
+  if (dobEl) dobEl.addEventListener('change', e => {
     const dob = e.target.value;
     const age = calculateAgeFromDOB(dob);
     const ageEl = $('age'); if (ageEl) ageEl.value = age || '';
     const ageGroupEl = $('participantTypeAge'); if (ageGroupEl) ageGroupEl.value = deriveAgeGroup(age) || '';
     const bucket = deriveYouthBucket(age);
-    if (bucket) { $('youthBucket').value = bucket; show($('youthBucketWrap')); } else { $('youthBucket').value = ''; hide($('youthBucketWrap')); }
+    if (bucket) { const yb = $('youthBucket'); if (yb) { yb.value = bucket; show($('youthBucketWrap')); } } else { const yb = $('youthBucket'); if (yb) { yb.value = ''; hide($('youthBucketWrap')); } }
   });
 
   // Sector -> Industry -> JobType -> JobRole (baseline & placement)
@@ -194,10 +204,11 @@ document.addEventListener('DOMContentLoaded', () => {
       const targetIndustry = id === 'currentSector' ? 'currentIndustry' : 'industry';
       const targetJobType = id === 'currentSector' ? 'currentJobType' : 'jobType';
       const targetJobRole = id === 'currentSector' ? 'currentJobRole' : 'jobRole';
-      const list = $(targetIndustry); list.innerHTML = '<option value="">Select</option>';
+      const list = $(targetIndustry); if (!list) return;
+      list.innerHTML = '<option value="">Select</option>';
       (industryMap[e.target.value]||[]).forEach(i => list.add(new Option(i,i)));
-      $(targetJobType).innerHTML = '<option value="">Select</option>';
-      $(targetJobRole).innerHTML = '<option value="">Select</option>';
+      const jt = $(targetJobType); if (jt) jt.innerHTML = '<option value="">Select</option>';
+      const jr = $(targetJobRole); if (jr) jr.innerHTML = '<option value="">Select</option>';
     });
   });
 
@@ -208,9 +219,10 @@ document.addEventListener('DOMContentLoaded', () => {
     el.addEventListener('change', e => {
       const targetJobType = id === 'currentIndustry' ? 'currentJobType' : 'jobType';
       const targetJobRole = id === 'currentIndustry' ? 'currentJobRole' : 'jobRole';
-      const list = $(targetJobType); list.innerHTML = '<option value="">Select</option>';
+      const list = $(targetJobType); if (!list) return;
+      list.innerHTML = '<option value="">Select</option>';
       (jobTypeMap[e.target.value]||[]).forEach(i => list.add(new Option(i,i)));
-      $(targetJobRole).innerHTML = '<option value="">Select</option>';
+      const jr = $(targetJobRole); if (jr) jr.innerHTML = '<option value="">Select</option>';
     });
   });
 
@@ -220,49 +232,55 @@ document.addEventListener('DOMContentLoaded', () => {
     if (!el) return;
     el.addEventListener('change', e => {
       const targetJobRole = id === 'currentJobType' ? 'currentJobRole' : 'jobRole';
-      const list = $(targetJobRole); list.innerHTML = '<option value="">Select</option>';
+      const list = $(targetJobRole); if (!list) return;
+      list.innerHTML = '<option value="">Select</option>';
       (jobRoleMap[e.target.value]||[]).forEach(i => list.add(new Option(i,i)));
     });
   });
 
   // Lookup button (doGet)
-  $('lookupBtn').addEventListener('click', async () => {
-    const pid = $('lookupParticipantId').value.trim();
-    const phone = $('lookupTelephone').value.trim();
-    $('lookupStatus').textContent = 'Searching...';
+  const lookupBtn = $('lookupBtn');
+  if (lookupBtn) lookupBtn.addEventListener('click', async () => {
+    const pid = $('lookupParticipantId') ? $('lookupParticipantId').value.trim() : '';
+    const phone = $('lookupTelephone') ? $('lookupTelephone').value.trim() : '';
+    const statusEl = $('lookupStatus');
+    if (statusEl) statusEl.textContent = 'Searching...';
     try {
       let url = APPS_SCRIPT_URL;
       if (pid) url += '?participantId=' + encodeURIComponent(pid);
       else if (phone) url += '?phone=' + encodeURIComponent(phone);
-      else { $('lookupStatus').textContent = 'Enter ParticipantID or Telephone.'; return; }
+      else { if (statusEl) statusEl.textContent = 'Enter ParticipantID or Telephone.'; return; }
       const res = await fetch(url);
       const data = await res.json();
       if (data.status === 'NOT_FOUND') {
-        $('lookupStatus').textContent = 'No participant found.';
+        if (statusEl) statusEl.textContent = 'No participant found.';
         return;
       }
       if (data.status === 'MULTIPLE') {
-        $('lookupStatus').textContent = 'Multiple matches found. Use exact ParticipantID.';
+        if (statusEl) statusEl.textContent = 'Multiple matches found. Use exact ParticipantID.';
         return;
       }
       if (data.status === 'OK' && data.record) {
         prefillFormFromRecord(data.record);
-        $('lookupStatus').textContent = 'Participant loaded. You can submit training/placement.';
+        if (statusEl) statusEl.textContent = 'Participant loaded. You can submit training/placement.';
       } else {
-        $('lookupStatus').textContent = 'Lookup error: ' + (data.message || JSON.stringify(data));
+        if (statusEl) statusEl.textContent = 'Lookup error: ' + (data.message || JSON.stringify(data));
       }
     } catch (err) {
-      $('lookupStatus').textContent = 'Network error: ' + err.message;
+      if (statusEl) statusEl.textContent = 'Network error: ' + err.message;
     }
   });
 
   // Form submit
-  $('questionnaire').addEventListener('submit', async (ev) => {
+  const form = $('questionnaire');
+  if (form) form.addEventListener('submit', async (ev) => {
     ev.preventDefault();
     const payload = collectFormData();
     if (!payload) return;
-    $('submitBtn').disabled = true;
-    $('status').textContent = 'Submitting...';
+    const submitBtn = $('submitBtn');
+    const statusEl = $('status');
+    if (submitBtn) submitBtn.disabled = true;
+    if (statusEl) statusEl.textContent = 'Submitting...';
     try {
       const res = await fetch(APPS_SCRIPT_URL, {
         method: 'POST',
@@ -272,18 +290,17 @@ document.addEventListener('DOMContentLoaded', () => {
       });
       const data = await res.json();
       if (data && data.status === 'OK') {
-        $('status').textContent = 'Saved. ParticipantID: ' + (data.participantId || payload.participantId) + ' Reference: ' + (data.referenceId || '');
-        $('questionnaire').reset();
-        // remove hidden participantId if present
+        if (statusEl) statusEl.textContent = 'Saved. ParticipantID: ' + (data.participantId || payload.participantId) + ' Reference: ' + (data.referenceId || '');
+        form.reset();
         const ph = document.getElementById('participantIdHidden');
         if (ph) ph.remove();
       } else {
-        $('status').textContent = 'Error: ' + (data.message || 'Unknown error');
+        if (statusEl) statusEl.textContent = 'Error: ' + (data.message || 'Unknown error');
       }
     } catch (err) {
-      $('status').textContent = 'Network error: ' + err.message;
+      if (statusEl) statusEl.textContent = 'Network error: ' + err.message;
     } finally {
-      $('submitBtn').disabled = false;
+      if (submitBtn) submitBtn.disabled = false;
     }
   });
 });
@@ -335,7 +352,7 @@ function prefillFormFromRecord(rec){
     if ($('age')) $('age').value = age;
     if ($('participantTypeAge')) $('participantTypeAge').value = deriveAgeGroup(age);
     const bucket = deriveYouthBucket(age);
-    if (bucket) { $('youthBucket').value = bucket; show($('youthBucketWrap')); } else hide($('youthBucketWrap'));
+    if (bucket) { const yb = $('youthBucket'); if (yb) { yb.value = bucket; show($('youthBucketWrap')); } } else { const yb = $('youthBucket'); if (yb) hide($('youthBucketWrap')); }
   }
 
   // Show baseline employment block if EmploymentStatus indicates employed
@@ -345,6 +362,7 @@ function prefillFormFromRecord(rec){
 // Collect form data into an object and run client-side validations
 function collectFormData(){
   const form = document.getElementById('questionnaire');
+  if (!form) return null;
   if (!form.checkValidity()) { form.reportValidity(); return null; }
   const fd = new FormData(form);
   const obj = {};
